@@ -202,3 +202,59 @@ def submit_dispute(request, public_id):
     messages.warning(request, "Dispute submitted to Admin for formal investigation.")
     return redirect('projects:detail', public_id=p.public_id)
 
+
+
+@verified_required
+@require_POST
+def project_complete_view(request, public_id):
+    p = get_object_or_404(Project.objects.select_related('client', 'freelancer', 'agreement', 'job'), public_id=public_id)
+    if request.user.pk != p.client_id and not (getattr(request.user, 'is_platform_admin', False) or request.user.is_superuser):
+        raise PermissionDenied("Only the client can approve and complete this project.")
+    if p.status == Project.Status.COMPLETED:
+        messages.info(request, "This project has already been approved and completed.")
+        return redirect('projects:detail', public_id=p.public_id)
+
+    feedback = request.POST.get('feedback', 'Project deliverables approved.')
+    if p.agreement:
+        from apps.agreements.services import complete_agreement_and_release_payment
+        complete_agreement_and_release_payment(agreement=p.agreement, client=request.user, feedback=feedback)
+    else:
+        from apps.wallets import ledger
+        from apps.wallets.models import WalletTransaction
+        from apps.tasks.models import Task
+        from apps.core.money import ZERO
+        from django.db.models import Sum
+        from django.utils import timezone
+
+        amount = p.final_price
+        freelancer = p.freelancer
+        client = p.client
+
+        already_paid_to_members = WalletTransaction.objects.filter(
+            project=p,
+            task__isnull=False,
+            transaction_type=WalletTransaction.Type.PROJECT_PAYMENT
+        ).exclude(user=freelancer).aggregate(total=Sum('amount'))['total'] or ZERO
+
+        # Automatically disburse subtask funds to team members for completed tasks
+        for t in p.tasks.filter(status=Task.Status.COMPLETED, assigned_to__isnull=False, skillcoin_allocation__gt=ZERO).exclude(assigned_to=freelancer):
+            if not WalletTransaction.objects.filter(task=t, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, user=t.assigned_to).exists():
+                t_amt = min(t.skillcoin_allocation, max(ZERO, amount - already_paid_to_members))
+                if t_amt > ZERO:
+                    c_src = WalletTransaction.Bucket.ESCROW if client.wallet.escrow_balance >= t_amt else (WalletTransaction.Bucket.RESERVED if client.wallet.reserved_balance >= t_amt else WalletTransaction.Bucket.AVAILABLE)
+                    d_txn = ledger.move(user=client, amount=t_amt, transaction_type=WalletTransaction.Type.ESCROW_RELEASE, from_bucket=c_src, to_bucket=WalletTransaction.Bucket.EXTERNAL, project=p, task=t, counterparty=t.assigned_to, actor=client, description=f'Escrow release for subtask "{t.title}"')
+                    ledger.move(user=t.assigned_to, amount=t_amt, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=WalletTransaction.Bucket.EXTERNAL, to_bucket=WalletTransaction.Bucket.AVAILABLE, project=p, task=t, counterparty=freelancer, actor=client, related=d_txn, description=f'Milestone subtask payout for "{t.title}" ({p.title})')
+                    already_paid_to_members += t_amt
+
+        leader_share = max(ZERO, amount - already_paid_to_members)
+        if leader_share > ZERO:
+            c_src = WalletTransaction.Bucket.ESCROW if client.wallet.escrow_balance >= leader_share else (WalletTransaction.Bucket.RESERVED if client.wallet.reserved_balance >= leader_share else WalletTransaction.Bucket.AVAILABLE)
+            d_txn = ledger.move(user=client, amount=leader_share, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=c_src, to_bucket=WalletTransaction.Bucket.EXTERNAL, project=p, counterparty=freelancer, actor=client, description=f'Final leader payment for project “{p.title}”')
+            ledger.move(user=freelancer, amount=leader_share, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=WalletTransaction.Bucket.EXTERNAL, to_bucket=WalletTransaction.Bucket.AVAILABLE, project=p, counterparty=client, actor=client, related=d_txn, description=f'Project payment received for “{p.title}”')
+
+        p.status = Project.Status.COMPLETED
+        p.completed_at = timezone.now()
+        p.save(update_fields=['status', 'completed_at', 'updated_at'])
+
+    messages.success(request, f'Project approved! Milestone escrow payments distributed to team members and remaining funds released to {p.freelancer.username}.')
+    return redirect('projects:detail', public_id=p.public_id)

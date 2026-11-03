@@ -15,6 +15,28 @@
     {% if project.description %}<div style="margin-top:var(--gap-3); padding-top:var(--gap-3); border-top:1px solid var(--border-color);"><p class="small">{{ project.description|linebreaksbr }}</p></div>{% endif %}
   </div>
 
+  {% if request.user.pk == project.client_id and project.status != 'COMPLETED' %}
+    <div class="card" style="padding:16px 20px; border-radius:12px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:1.5px solid #86efac; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:42px; height:42px; border-radius:50%; background:#16a34a; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0;">
+          ✓
+        </div>
+        <div>
+          <div style="font-weight:700; font-size:1.05rem; color:#14532d;">Client Project Completion &amp; Escrow Release</div>
+          <div class="small" style="color:#166534; margin-top:2px;">
+            Satisfied with deliverables? Approve the project. The <strong>{{ project.final_price|coin }} SKC</strong> budget held in escrow will be released, automatically distributing subtask funds to team members and leader share.
+          </div>
+        </div>
+      </div>
+      <form method="post" action="{% url 'projects:complete' project.public_id %}" onsubmit="return confirm('Approve project and release escrow funds to the team?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--primary btn--sm" style="background:#15803d; border-color:#15803d; font-weight:700; padding:10px 18px; font-size:0.9rem;">
+          ✓ Approve &amp; Release Funds
+        </button>
+      </form>
+    </div>
+  {% endif %}
+
   {% if my_invite %}
     <div class="alert alert--info" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-radius:10px; background:linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(99, 102, 241, 0.14)); border:1.5px solid var(--brand-300, #a5b4fc); margin-bottom:var(--gap-4);">
       <div style="display:flex; align-items:center; gap:12px;">

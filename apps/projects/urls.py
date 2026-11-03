@@ -17,4 +17,5 @@ urlpatterns = [
     path('<uuid:public_id>/chat/send/', views.project_chat_send, name='chat_send'),
     path('<uuid:public_id>/reviews/submit/', views.submit_review, name='review_submit'),
     path('<uuid:public_id>/disputes/create/', views.submit_dispute, name='dispute_create'),
+    path('<uuid:public_id>/complete/', views.project_complete_view, name='complete'),
 ]

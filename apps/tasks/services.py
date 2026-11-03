@@ -97,11 +97,23 @@ def update_task_status(task: Task, new_status: str, actor: User, is_auto: bool =
         member_user = task.assigned_to
         amt = task.skillcoin_allocation
         try:
-            debit_src = WalletTransaction.Bucket.ESCROW if client_user.wallet.escrow_balance >= amt else (WalletTransaction.Bucket.AVAILABLE if client_user.wallet.available_balance >= amt else WalletTransaction.Bucket.EXTERNAL)
-            d_txn = ledger.move(user=client_user, amount=amt, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=debit_src, to_bucket=WalletTransaction.Bucket.EXTERNAL, project=p, task=task, counterparty=member_user, actor=actor, description=f'Payout for task "{task.title}"')
-            ledger.move(user=member_user, amount=amt, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=WalletTransaction.Bucket.EXTERNAL, to_bucket=WalletTransaction.Bucket.AVAILABLE, project=p, task=task, counterparty=client_user, actor=actor, related=d_txn, description=f'Payout received for task "{task.title}"')
+            if not WalletTransaction.objects.filter(task_id=task.id, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, user=member_user).exists():
+                client_wallet = client_user.wallet
+                client_wallet.refresh_from_db()
+                # Subtask payouts come strictly from the project's escrow budget, never taking extra from client available balance
+                if client_wallet.escrow_balance >= amt:
+                    ledger.release_payment(client=client_user, freelancer=member_user, amount=amt, project=p, task=task, actor=actor)
+                    try:
+                        from apps.escrow.models import Escrow
+                        escrow_obj = Escrow.objects.filter(project=p).first()
+                        if escrow_obj and escrow_obj.held_amount >= amt:
+                            escrow_obj.held_amount -= amt
+                            escrow_obj.released_amount += amt
+                            escrow_obj.save(update_fields=['held_amount', 'released_amount', 'updated_at'])
+                    except Exception:
+                        pass
         except Exception:
-            pass
+            logger.exception('Failed to disburse milestone subtask payout')
     return task
 
 @transaction.atomic

@@ -112,17 +112,29 @@ def assistant_view(request):
     projects = get_user_accessible_projects(request.user)
     tasks = get_user_accessible_tasks(request.user)
     initial_summary = process_assistant_query(request.user, 'summary')
+    wallet_obj = None
+    try:
+        from apps.wallets.models import Wallet
+        wallet_obj = Wallet.objects.filter(user=request.user).first()
+    except Exception:
+        pass
+    wallet_balance = getattr(wallet_obj, 'available_balance', 0)
+    escrow_balance = getattr(wallet_obj, 'escrow_balance', 0)
     return render(request, 'core/assistant.html', {
         'nav': 'assistant',
         'projects_count': projects.count(),
         'tasks_count': tasks.count(),
+        'wallet_balance': wallet_balance,
+        'escrow_balance': escrow_balance,
         'initial_summary': initial_summary.get('text', ''),
         'suggestions': [
             'What projects am I currently working on?',
             'What tasks are assigned to me?',
             'Which tasks have upcoming deadlines?',
             'Show my high priority tasks',
-            'Any active disputes on my projects?',
+            'How much SkillCoins do I have in my wallet?',
+            'How does escrow payment protection work?',
+            'How do I create and manage a team?',
         ]
     })
 
