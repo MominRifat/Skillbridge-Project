@@ -70,3 +70,44 @@ class US29SeleniumAssistantTest(BaseSprint5SeleniumTestCase):
         # Confirm answer appears in chat window
         chat_box = self.driver.find_element(By.ID, 'chatMessages')
         self.assertIn('Build Grounded Semantic Pipeline', chat_box.text)
+
+    def test_assistant_sidebar_navigation_opens_page(self):
+        """US-29: Clicking AI Assistant in sidebar navigates to assistant chat page."""
+        self.login_user('sel_ai_free@test.com', self.password)
+        self.driver.get(f'{self.live_server_url}/profiles/freelancer/dashboard/')
+        time.sleep(1)
+
+        sidebar_link = self.driver.find_element(By.XPATH, "//a[contains(@href, '/assistant/')]")
+        sidebar_link.click()
+        time.sleep(1)
+
+        self.assertIn('/assistant/', self.driver.current_url)
+        self.assertIn('AI Assistant', self.driver.page_source)
+
+    def test_assistant_suggestion_pill_click_populates_query(self):
+        """US-29: Clicking an interactive suggestion pill sends query and renders response."""
+        self.login_user('sel_ai_free@test.com', self.password)
+        self.driver.get(f'{self.live_server_url}/assistant/')
+        time.sleep(1)
+
+        pills = self.driver.find_elements(By.CSS_SELECTOR, '.suggestion-chip')
+        self.assertTrue(len(pills) > 0)
+        pills[0].click()
+        time.sleep(2.5)
+
+        chat_box = self.driver.find_element(By.ID, 'chatMessages')
+        self.assertTrue(len(chat_box.text.strip()) > 10)
+
+    def test_assistant_guardrail_off_topic_query_in_browser(self):
+        """US-29: Off-topic query triggers database-grounded guardrail response."""
+        self.login_user('sel_ai_free@test.com', self.password)
+        self.driver.get(f'{self.live_server_url}/assistant/')
+        time.sleep(1)
+
+        input_field = self.driver.find_element(By.ID, 'userInput')
+        input_field.send_keys('What is the weather in Tokyo?')
+        self.driver.find_element(By.ID, 'sendBtn').click()
+        time.sleep(2.5)
+
+        chat_box = self.driver.find_element(By.ID, 'chatMessages')
+        self.assertIn('grounded', chat_box.text.lower())

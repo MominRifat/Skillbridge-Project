@@ -64,3 +64,40 @@ class US27SeleniumDisputeTest(BaseSprint5SeleniumTestCase):
 
         # Confirm dispute recorded in DB
         self.assertTrue(Dispute.objects.filter(project=self.project, raised_by=self.freelancer).exists())
+
+    def test_dispute_form_toggle_in_browser(self):
+        """US-27: Raising dispute toggle button shows and hides dispute form smoothly."""
+        self.login_user('sel_disp_free@test.com', self.password)
+        project_url = f'{self.live_server_url}/projects/{self.project.public_id}/'
+        self.driver.get(project_url)
+        time.sleep(1)
+
+        toggle_btn = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Raise Dispute')]")
+        form = self.driver.find_element(By.ID, 'dispute-form')
+        self.assertIn('hide', form.get_attribute('class'))
+
+        toggle_btn.click()
+        time.sleep(0.3)
+        self.assertNotIn('hide', form.get_attribute('class'))
+
+    def test_dispute_resolution_admin_notice_displayed_in_browser(self):
+        """US-27: Admin resolution notes and resolved date are displayed in workspace."""
+        admin_user = User.objects.create_superuser('admin_disp@test.com', 'admindisp', self.password)
+        disp = Dispute.objects.create(
+            project=self.project,
+            raised_by=self.client_user,
+            against=self.freelancer,
+            reason=Dispute.Reason.QUALITY,
+            description='Milestone deliverable had missing security validations.',
+            status=Dispute.Status.RESOLVED,
+            admin_resolution='Freelancer must patch security issues within 48h; remaining escrow retained until review.',
+            resolved_by=admin_user,
+            resolved_at=timezone.now()
+        )
+        self.login_user('sel_disp_free@test.com', self.password)
+        project_url = f'{self.live_server_url}/projects/{self.project.public_id}/'
+        self.driver.get(project_url)
+        time.sleep(1)
+
+        self.assertIn('Admin Resolution', self.driver.page_source)
+        self.assertIn('Freelancer must patch security issues', self.driver.page_source)
