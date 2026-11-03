@@ -71,21 +71,67 @@ def complete_agreement_and_release_payment(*, agreement: Agreement, client, feed
     job = Job.objects.select_for_update().get(pk=agreement.job_id)
     freelancer = agreement.freelancer
     amount = agreement.amount
-    debit_client = ledger.move(user=client, amount=amount, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=WalletTransaction.Bucket.RESERVED, to_bucket=WalletTransaction.Bucket.EXTERNAL, job=job, counterparty=freelancer, actor=client, description=f'Payment for completed job “{job.title[:60]}”')
-    credit_freelancer = ledger.move(user=freelancer, amount=amount, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=WalletTransaction.Bucket.EXTERNAL, to_bucket=WalletTransaction.Bucket.AVAILABLE, job=job, counterparty=client, actor=client, related=debit_client, description=f'Payment received for completed job “{job.title[:60]}”')
-    WalletTransaction.objects.filter(pk=debit_client.pk).update(related_transaction=credit_freelancer)
-    if job.reserved_amount > amount:
-        remainder = job.reserved_amount - amount
+
+    from apps.projects.models import Project
+    from apps.tasks.models import Task
+    from django.db.models import Sum, Q
+
+    project = Project.objects.filter(Q(agreement=agreement) | Q(job=job)).first()
+
+    already_paid_to_members = ZERO
+    if project:
+        # Sum of subtask payouts already received by team members on this project
+        already_paid_to_members = WalletTransaction.objects.filter(
+            project_id=project.id,
+            task_id__isnull=False,
+            transaction_type=WalletTransaction.Type.PROJECT_PAYMENT
+        ).exclude(user=freelancer).aggregate(total=Sum('amount'))['total'] or ZERO
+
+        # Automatically disburse funds to any completed tasks assigned to team members that haven't been paid yet
+        pending_member_tasks = project.tasks.filter(
+            status=Task.Status.COMPLETED,
+            assigned_to__isnull=False,
+            skillcoin_allocation__gt=ZERO
+        ).exclude(assigned_to=freelancer)
+
+        for t in pending_member_tasks:
+            if not WalletTransaction.objects.filter(task_id=t.id, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, user=t.assigned_to).exists():
+                t_amt = min(t.skillcoin_allocation, max(ZERO, amount - already_paid_to_members))
+                if t_amt > ZERO:
+                    ledger.release_payment(client=client, freelancer=t.assigned_to, amount=t_amt, project=project, task=t, actor=client)
+                    already_paid_to_members += t_amt
+
+    # The remaining amount from the project budget goes to the team leader
+    leader_share = max(ZERO, amount - already_paid_to_members)
+    client_debit_remaining = leader_share
+    credit_freelancer = None
+
+    if client_debit_remaining > ZERO:
+        c_src = WalletTransaction.Bucket.RESERVED if client.wallet.reserved_balance >= client_debit_remaining else (WalletTransaction.Bucket.ESCROW if client.wallet.escrow_balance >= client_debit_remaining else WalletTransaction.Bucket.AVAILABLE)
+        debit_client = ledger.move(user=client, amount=client_debit_remaining, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=c_src, to_bucket=WalletTransaction.Bucket.EXTERNAL, job=job, project=project, counterparty=freelancer, actor=client, description=f'Payment for completed job “{job.title[:60]}”')
+        credit_freelancer = ledger.move(user=freelancer, amount=leader_share, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=WalletTransaction.Bucket.EXTERNAL, to_bucket=WalletTransaction.Bucket.AVAILABLE, job=job, project=project, counterparty=client, actor=client, related=debit_client, description=f'Payment received for completed job “{job.title[:60]}”')
+        WalletTransaction.objects.filter(pk=debit_client.pk).update(related_transaction=credit_freelancer)
+
+    if job.reserved_amount > ZERO:
+        remainder = job.reserved_amount
         ledger.release_job_budget(user=client, amount=remainder, job=job, actor=client, reason='Unused budget returned after agreement completion')
+
     job.reserved_amount = ZERO
     job.status = Job.Status.COMPLETED
     job.completed_at = timezone.now()
     job.save(update_fields=['reserved_amount', 'status', 'completed_at', 'updated_at'])
+
     agreement.status = Agreement.Status.COMPLETED
     agreement.completed_at = timezone.now()
     agreement.client_feedback = feedback.strip()
     agreement.payment_transaction = credit_freelancer
     agreement.save(update_fields=['status', 'completed_at', 'client_feedback', 'payment_transaction', 'updated_at'])
-    record_activity(ActivityVerb.PAYMENT_RELEASED, f'Approved work and released {amount:,.2f} SKC for “{job.title}”', actor=client, job=job, target=agreement, amount=amount)
-    notify(freelancer, NotificationType.PAYMENT_RELEASED, f'Payment of {amount:,.2f} SKC released!', message=f'{client.full_name} approved your work for “{job.title}”. {amount:,.2f} SKC has been credited to your wallet available balance!', actor=client, target_url=agreement.get_absolute_url(), level='SUCCESS', email=True)
+
+    if project:
+        project.status = Project.Status.COMPLETED
+        project.completed_at = timezone.now()
+        project.save(update_fields=['status', 'completed_at', 'updated_at'])
+
+    record_activity(ActivityVerb.PAYMENT_RELEASED, f'Approved work and released {amount:,.2f} SKC for “{job.title}”', actor=client, job=job, project=project, target=agreement, amount=amount)
+    notify(freelancer, NotificationType.PAYMENT_RELEASED, f'Payment of {leader_share:,.2f} SKC released!', message=f'{client.full_name} approved your work for “{job.title}”. {leader_share:,.2f} SKC has been credited to your wallet available balance!', actor=client, target_url=agreement.get_absolute_url(), level='SUCCESS', email=True)
     return agreement

@@ -7,88 +7,189 @@
 {% block shell_css %}
 {{ block.super }}
 <style>
+  :root {
+    --ai-primary: #4f46e5;
+    --ai-primary-hover: #4338ca;
+    --ai-primary-light: #e0e7ff;
+    --ai-dark: #0f172a;
+    --ai-surface: #ffffff;
+    --ai-border: #e2e8f0;
+    --ai-text-main: #1e293b;
+    --ai-text-muted: #64748b;
+    --ai-success: #10b981;
+    --ai-amber: #f59e0b;
+    --ai-rose: #f43f5e;
+  }
+
   .assistant-container {
-    max-width: 1000px;
+    max-width: 1040px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 120px);
-    background: var(--bg-surface, #ffffff);
-    border-radius: 12px;
-    border: 1px solid var(--border-color, #e2e8f0);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    height: calc(100vh - 110px);
+    background: var(--ai-surface);
+    border-radius: 16px;
+    border: 1px solid var(--ai-border);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
     overflow: hidden;
+    position: relative;
   }
+
+  /* Header Section */
   .assistant-header {
     padding: 16px 24px;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: #fff;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e293b 100%);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 10;
   }
   .assistant-header-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
   }
   .assistant-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
     background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+    font-size: 24px;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
+    position: relative;
+  }
+  .assistant-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    background: #10b981;
+    border: 2px solid #0f172a;
+    border-radius: 50%;
   }
   .assistant-header-titles h2 {
     font-size: 1.15rem;
     font-weight: 700;
     margin: 0;
     color: #f8fafc;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .assistant-header-titles p {
     font-size: 0.8rem;
     color: #94a3b8;
-    margin: 2px 0 0;
+    margin: 3px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .grounded-badge {
-    background: rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.15);
     color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.4);
-    padding: 4px 10px;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    padding: 5px 12px;
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    backdrop-filter: blur(4px);
   }
-  .grounded-badge::before {
-    content: '';
-    display: inline-block;
+  .status-indicator-dot {
     width: 7px;
     height: 7px;
     background: #10b981;
     border-radius: 50%;
-    box-shadow: 0 0 6px #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulseGlow 2s infinite;
   }
+  @keyframes pulseGlow {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+  .header-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .header-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+  }
+
+  /* Quick Stats Strip */
+  .assistant-stats-strip {
+    display: flex;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--ai-border);
+    padding: 8px 24px;
+    gap: 16px;
+    overflow-x: auto;
+    font-size: 0.8rem;
+  }
+  .stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ai-text-muted);
+    font-weight: 500;
+  }
+  .stat-pill strong {
+    color: var(--ai-text-main);
+  }
+  .stat-pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6366f1;
+  }
+
+  /* Messages Section */
   .assistant-messages {
     flex: 1;
     overflow-y: auto;
     padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    background: var(--bg-alt, #f8fafc);
+    gap: 20px;
+    background: #f8fafc;
+    scroll-behavior: smooth;
   }
   .msg-row {
     display: flex;
     gap: 12px;
-    max-width: 82%;
+    max-width: 85%;
+    animation: fadeInMsg 0.25s ease-out;
+  }
+  @keyframes fadeInMsg {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   .msg-row.user {
     align-self: flex-end;
@@ -97,40 +198,118 @@
   .msg-row.assistant {
     align-self: flex-start;
   }
+  .msg-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .msg-row.assistant .msg-avatar {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+  }
+  .msg-row.user .msg-avatar {
+    background: #1e293b;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .msg-bubble-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
   .msg-bubble {
     padding: 14px 18px;
-    border-radius: 12px;
+    border-radius: 14px;
     font-size: 0.92rem;
-    line-height: 1.55;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    line-height: 1.6;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+    word-break: break-word;
   }
   .msg-row.user .msg-bubble {
-    background: #4f46e5;
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
     color: #ffffff;
-    border-bottom-right-radius: 2px;
+    border-bottom-right-radius: 3px;
   }
   .msg-row.assistant .msg-bubble {
     background: #ffffff;
-    color: var(--text-color, #1e293b);
-    border: 1px solid var(--border-color, #e2e8f0);
-    border-bottom-left-radius: 2px;
+    color: var(--ai-text-main);
+    border: 1px solid var(--ai-border);
+    border-bottom-left-radius: 3px;
   }
+  .msg-meta {
+    font-size: 0.72rem;
+    color: var(--ai-text-muted);
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .msg-row.user .msg-meta {
+    justify-content: flex-end;
+  }
+
+  /* Formatting inside bubble */
   .msg-bubble h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 1rem;
+    margin: 0 0 8px;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: #4f46e5;
+    color: #1e1b4b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  .msg-bubble ul {
-    margin: 6px 0;
+  .msg-bubble p {
+    margin: 0 0 8px;
+  }
+  .msg-bubble p:last-child {
+    margin-bottom: 0;
+  }
+  .msg-bubble ul, .msg-bubble ol {
+    margin: 6px 0 10px;
     padding-left: 20px;
   }
   .msg-bubble li {
-    margin-bottom: 4px;
+    margin-bottom: 5px;
   }
+  .msg-bubble strong {
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .msg-row.user .msg-bubble strong {
+    color: #ffffff;
+  }
+  .msg-bubble em {
+    color: #475569;
+  }
+  .msg-bubble code {
+    background: #f1f5f9;
+    color: #4338ca;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 0.86em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    border: 1px solid #e2e8f0;
+  }
+  .msg-bubble pre {
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 12px 14px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    margin: 8px 0;
+  }
+
+  /* Grounded Items Cards */
   .grounded-cards {
-    margin-top: 10px;
+    margin-top: 12px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -140,186 +319,362 @@
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    border-radius: 6px;
-    background: #f1f5f9;
+    border-radius: 8px;
+    background: #f8fafc;
     border: 1px solid #cbd5e1;
     font-size: 0.8rem;
-    color: #334155;
+    color: #1e293b;
     text-decoration: none;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
   }
   .grounded-card-pill:hover {
     background: #e2e8f0;
     color: #0f172a;
-    border-color: #94a3b8;
+    border-color: #6366f1;
+    transform: translateY(-1px);
   }
+  .status-tag {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .status-tag.active { background: #dcfce7; color: #15803d; }
+  .status-tag.todo { background: #fef3c7; color: #b45309; }
+  .status-tag.high { background: #fee2e2; color: #b91c1c; }
+
+  /* Welcome Banner Inside Chat */
+  .welcome-card {
+    background: #ffffff;
+    border: 1px solid var(--ai-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 10px;
+    border-left: 4px solid #6366f1;
+  }
+  .welcome-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .feat-box {
+    background: #f8fafc;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.82rem;
+  }
+  .feat-box strong {
+    display: block;
+    color: #1e1b4b;
+    margin-bottom: 2px;
+  }
+
+  /* Suggestions Bar */
   .suggestions-bar {
     padding: 10px 20px;
     background: #ffffff;
-    border-top: 1px solid var(--border-color, #e2e8f0);
+    border-top: 1px solid var(--ai-border);
     display: flex;
     align-items: center;
     gap: 8px;
     overflow-x: auto;
     white-space: nowrap;
+    scrollbar-width: thin;
+  }
+  .suggestions-bar::-webkit-scrollbar {
+    height: 4px;
+  }
+  .suggestions-bar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+  .suggestions-label {
+    font-size: 0.72rem;
+    color: var(--ai-text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
   }
   .suggestion-chip {
     background: #f1f5f9;
-    color: #475569;
+    color: #334155;
     border: 1px solid #e2e8f0;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 6px 14px;
     font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.15s ease;
     user-select: none;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
   .suggestion-chip:hover {
-    background: #e0e7ff;
-    color: #4338ca;
+    background: var(--ai-primary-light);
+    color: var(--ai-primary-hover);
     border-color: #c7d2fe;
+    transform: translateY(-1px);
   }
+
+  /* Input Form */
   .assistant-input-area {
     padding: 16px 20px;
     background: #ffffff;
-    border-top: 1px solid var(--border-color, #e2e8f0);
+    border-top: 1px solid var(--ai-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .input-wrapper {
     display: flex;
     gap: 10px;
     align-items: center;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 6px 8px 6px 16px;
+    transition: all 0.2s ease;
+  }
+  .input-wrapper:focus-within {
+    border-color: #6366f1;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
   }
   .assistant-input {
     flex: 1;
-    padding: 12px 16px;
-    border: 1px solid var(--border-color, #cbd5e1);
-    border-radius: 8px;
+    border: none;
+    background: transparent;
     font-size: 0.95rem;
+    color: var(--ai-text-main);
     outline: none;
-    transition: border-color 0.2s;
+    padding: 6px 0;
   }
-  .assistant-input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  .assistant-input::placeholder {
+    color: #94a3b8;
   }
   .assistant-send-btn {
-    background: #4f46e5;
-    color: #fff;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
     border: none;
-    padding: 12px 22px;
+    padding: 10px 18px;
     border-radius: 8px;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: background 0.2s;
-    display: flex;
+    transition: all 0.2s ease;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.35);
   }
   .assistant-send-btn:hover {
-    background: #4338ca;
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    transform: translateY(-1px);
   }
   .assistant-send-btn:disabled {
     background: #94a3b8;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
+  .input-hints {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px;
+    font-size: 0.72rem;
+    color: var(--ai-text-muted);
+  }
+
+  /* Typing Animation */
   .typing-indicator {
     display: inline-flex;
-    gap: 4px;
+    gap: 5px;
     align-items: center;
-    padding: 6px 12px;
+    padding: 8px 12px;
   }
   .typing-dot {
     width: 6px;
     height: 6px;
-    background: #94a3b8;
+    background: #6366f1;
     border-radius: 50%;
     animation: typing 1.4s infinite ease-in-out both;
   }
   .typing-dot:nth-child(1) { animation-delay: -0.32s; }
   .typing-dot:nth-child(2) { animation-delay: -0.16s; }
   @keyframes typing {
-    0%, 80%, 100% { transform: scale(0); }
-    40% { transform: scale(1); }
+    0%, 80%, 100% { transform: scale(0.3); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Copy button for code / text */
+  .copy-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+  .copy-btn:hover {
+    color: #4f46e5;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="assistant-container">
+  <!-- Top Navigation Header -->
   <div class="assistant-header">
     <div class="assistant-header-left">
       <div class="assistant-avatar">🤖</div>
       <div class="assistant-header-titles">
-        <h2>SkillBridge Project & Task Assistant</h2>
-        <p>Grounding context: <strong>{{ projects_count }}</strong> projects &bull; <strong>{{ tasks_count }}</strong> tasks accessible</p>
+        <h2>SkillBridge AI Assistant</h2>
+        <p>
+          <span class="status-indicator-dot"></span>
+          <span>Online &bull; Grounded on <strong>{{ projects_count }}</strong> projects &bull; <strong>{{ tasks_count }}</strong> tasks</span>
+        </p>
       </div>
     </div>
-    <span class="grounded-badge">Strict Data Authorization</span>
+    <div class="header-actions">
+      <span class="grounded-badge">Strict Data Isolation</span>
+      <button type="button" class="header-btn" onclick="clearChat()" title="Reset chat window">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        <span>Clear</span>
+      </button>
+    </div>
   </div>
 
+  <!-- Live Stats Strip -->
+  <div class="assistant-stats-strip">
+    <div class="stat-pill"><span class="dot"></span><span>Active Projects: <strong>{{ projects_count }}</strong></span></div>
+    <div class="stat-pill"><span class="dot" style="background:#10b981;"></span><span>Tasks: <strong>{{ tasks_count }}</strong></span></div>
+    <div class="stat-pill"><span class="dot" style="background:#f59e0b;"></span><span>Wallet Balance: <strong>{{ wallet_balance|default:"0.00" }} SC</strong></span></div>
+    {% if escrow_balance %}
+    <div class="stat-pill"><span class="dot" style="background:#8b5cf6;"></span><span>In Escrow: <strong>{{ escrow_balance }} SC</strong></span></div>
+    {% endif %}
+  </div>
+
+  <!-- Messages Stream -->
   <div class="assistant-messages" id="chatMessages">
-    <!-- Welcome AI Bubble -->
+    <!-- Initial Welcome AI Bubble -->
     <div class="msg-row assistant">
-      <div class="assistant-avatar" style="width: 32px; height: 32px; font-size: 16px;">🤖</div>
-      <div class="msg-bubble">
-        <h3>Welcome, {{ request.user.get_full_name|default:request.user.email }}!</h3>
-        <p>I am your database-grounded AI Assistant. I can answer inquiries regarding your active projects, assigned tasks, deadlines, team members, and SkillCoin allocations.</p>
-        {% if initial_summary %}
-          <div style="margin-top: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border-left: 3px solid #6366f1;">
-            {{ initial_summary|linebreaksbr }}
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-bubble-wrap">
+        <div class="msg-bubble">
+          <h3>Welcome, {{ request.user.get_full_name|default:request.user.email }}! 👋</h3>
+          <p>I am your database-grounded <strong>SkillBridge AI Copilot</strong>. I am strictly authorized to provide real-time updates and answers about your projects, assigned tasks, milestone deadlines, collaborative teams, and wallet ledgers.</p>
+          
+          {% if initial_summary %}
+            <div class="welcome-card">
+              <strong style="color: #4f46e5; display:block; margin-bottom: 6px;">📊 Current Workspace Snapshot:</strong>
+              <div>{{ initial_summary|linebreaksbr }}</div>
+            </div>
+          {% endif %}
+
+          <div class="welcome-features">
+            <div class="feat-box">
+              <strong>📁 Projects &amp; Contracts</strong>
+              Track ongoing work, budgets, and milestone deliverables.
+            </div>
+            <div class="feat-box">
+              <strong>📋 Task Execution</strong>
+              Inspect task assignments, priorities, and deadlines.
+            </div>
+            <div class="feat-box">
+              <strong>🛡️ Escrow &amp; Payments</strong>
+              Review SkillCoin balances, held escrows, and payouts.
+            </div>
+            <div class="feat-box">
+              <strong>👥 Team Collaborations</strong>
+              Check team rosters, member shares, and invitations.
+            </div>
           </div>
-        {% endif %}
+        </div>
+        <div class="msg-meta">
+          <span>Just now</span> &bull; <span>SkillBridge Grounded Model</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Prompt Suggestions Bar -->
+  <!-- Prompt Suggestions Carousel -->
   <div class="suggestions-bar" id="suggestionsBar">
-    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Quick queries:</span>
+    <span class="suggestions-label">Suggestions:</span>
     {% for s in suggestions %}
-      <button type="button" class="suggestion-chip" onclick="askSuggestion('{{ s|escapejs }}')">{{ s }}</button>
+      <button type="button" class="suggestion-chip" onclick="askSuggestion('{{ s|escapejs }}')">
+        <span>{{ s }}</span>
+      </button>
     {% endfor %}
   </div>
 
   <!-- Input Form -->
   <form id="assistantForm" class="assistant-input-area" onsubmit="handleSend(event); return false;" action="javascript:void(0);">
     {% csrf_token %}
-    <input type="text" id="userInput" class="assistant-input" placeholder="Ask about your projects, tasks, deadlines, or teams..." autocomplete="off" />
-    <button type="button" id="sendBtn" class="assistant-send-btn" onclick="handleSend(event)">
-      <span>Ask Assistant</span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-    </button>
+    <div class="input-wrapper">
+      <input type="text" id="userInput" class="assistant-input" placeholder="Ask about your projects, tasks, deadlines, teams, or escrow..." autocomplete="off" />
+      <button type="button" id="sendBtn" class="assistant-send-btn" onclick="handleSend(event)">
+        <span>Ask</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </button>
+    </div>
+    <div class="input-hints">
+      <span>💡 Pro-tip: You can ask in English or Bengali (e.g. <em>"What tasks are assigned to me?"</em> or <em>"amar project ki ki ase"</em>)</span>
+      <span>Press <strong>Enter ↵</strong> to send</span>
+    </div>
   </form>
 </div>
 
 <script>
   function formatMarkdown(text) {
     if (!text) return '';
-    // Format headers ###
-    let formatted = text.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-    // Format bold **text**
-    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Format italic *text*
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    // Format code `code`
-    formatted = formatted.replace(/`([^`]+)`/g, '<code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:0.85em;">$1</code>');
-    // Format list items - ...
-    formatted = formatted.replace(/^\- (.*$)/gim, '<li>$1</li>');
-    // Wrap lists if needed
-    formatted = formatted.replace(/(<li>.*<\/li>)/gim, '<ul style="margin:6px 0;padding-left:20px;">$1</ul>');
-    // Fix repeated UL tags
-    formatted = formatted.replace(/<\/ul>\s*<ul style="margin:6px 0;padding-left:20px;">/gim, '');
-    // Convert remaining newlines
-    formatted = formatted.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
-    return formatted;
+    // Escape HTML first
+    let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    // Headers ###
+    escaped = escaped.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    // Headers ##
+    escaped = escaped.replace(/^## (.*$)/gim, '<h3 style="font-size:1.1rem;color:#1e1b4b;">$1</h3>');
+    // Bold **text**
+    escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Italic *text*
+    escaped = escaped.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Code `code`
+    escaped = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // List items - ...
+    escaped = escaped.replace(/^\- (.*$)/gim, '<li>$1</li>');
+    // Wrap lists
+    escaped = escaped.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+    escaped = escaped.replace(/<\/ul>\s*<ul>/gim, '');
+    // Convert newlines
+    escaped = escaped.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+    return escaped;
   }
 
   function appendUserMessage(text) {
     const container = document.getElementById('chatMessages');
     const row = document.createElement('div');
     row.className = 'msg-row user';
-    row.innerHTML = `<div class="msg-bubble">${escapeHtml(text)}</div>`;
+    
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    row.innerHTML = `
+      <div class="msg-avatar">👤</div>
+      <div class="msg-bubble-wrap">
+        <div class="msg-bubble">${escapeHtml(text)}</div>
+        <div class="msg-meta"><span>${timeStr}</span></div>
+      </div>
+    `;
     container.appendChild(row);
     container.scrollTop = container.scrollHeight;
   }
@@ -329,24 +684,35 @@
     const row = document.createElement('div');
     row.className = 'msg-row assistant';
     
-    let html = `<div class="assistant-avatar" style="width: 32px; height: 32px; font-size: 16px;">🤖</div>`;
-    html += `<div class="msg-bubble">`;
-    html += formatMarkdown(data.text);
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+    let bodyHtml = formatMarkdown(data.text);
+
+    // Grounded item cards
     if (data.grounded_items && data.grounded_items.length > 0) {
-      html += `<div class="grounded-cards">`;
+      bodyHtml += `<div class="grounded-cards">`;
       data.grounded_items.forEach(item => {
         if (item.url) {
-          html += `<a href="${item.url}" class="grounded-card-pill" target="_blank">🔗 ${escapeHtml(item.title)} [${escapeHtml(item.status)}]</a>`;
+          bodyHtml += `<a href="${item.url}" class="grounded-card-pill" target="_blank">🔗 ${escapeHtml(item.title)} <span class="status-tag active">${escapeHtml(item.status || 'Active')}</span></a>`;
         } else if (item.type === 'task') {
-          html += `<span class="grounded-card-pill">📋 ${escapeHtml(item.title)} &bull; <em>${escapeHtml(item.priority)}</em></span>`;
+          const priClass = (item.priority && item.priority.toLowerCase().includes('high')) ? 'high' : 'todo';
+          bodyHtml += `<span class="grounded-card-pill">📋 ${escapeHtml(item.title)} <span class="status-tag ${priClass}">${escapeHtml(item.priority || 'Normal')}</span></span>`;
         }
       });
-      html += `</div>`;
+      bodyHtml += `</div>`;
     }
 
-    html += `</div>`;
-    row.innerHTML = html;
+    row.innerHTML = `
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-bubble-wrap">
+        <div class="msg-bubble">${bodyHtml}</div>
+        <div class="msg-meta">
+          <span>${timeStr}</span> &bull; 
+          <button class="copy-btn" onclick="copyBubbleText(this)">Copy</button>
+        </div>
+      </div>
+    `;
+
     container.appendChild(row);
     container.scrollTop = container.scrollHeight;
 
@@ -362,13 +728,15 @@
     indicator.id = 'typingIndicator';
     indicator.className = 'msg-row assistant';
     indicator.innerHTML = `
-      <div class="assistant-avatar" style="width: 32px; height: 32px; font-size: 16px;">🤖</div>
-      <div class="msg-bubble" style="background: #ffffff;">
-        <span class="typing-indicator">
-          <span class="typing-dot"></span>
-          <span class="typing-dot"></span>
-          <span class="typing-dot"></span>
-        </span>
+      <div class="msg-avatar">🤖</div>
+      <div class="msg-bubble-wrap">
+        <div class="msg-bubble" style="background:#ffffff; padding: 10px 14px;">
+          <span class="typing-indicator">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </span>
+        </div>
       </div>
     `;
     container.appendChild(indicator);
@@ -382,7 +750,8 @@
 
   function updateSuggestions(suggestions) {
     const bar = document.getElementById('suggestionsBar');
-    bar.innerHTML = '<span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Quick queries:</span>';
+    if (!bar) return;
+    bar.innerHTML = '<span class="suggestions-label">Suggestions:</span>';
     suggestions.forEach(s => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -402,8 +771,29 @@
     handleSend();
   }
 
+  function copyBubbleText(btn) {
+    const bubble = btn.closest('.msg-bubble-wrap').querySelector('.msg-bubble');
+    if (!bubble) return;
+    navigator.clipboard.writeText(bubble.innerText).then(() => {
+      const orig = btn.innerText;
+      btn.innerText = 'Copied!';
+      btn.style.color = '#10b981';
+      setTimeout(() => {
+        btn.innerText = orig;
+        btn.style.color = '';
+      }, 1500);
+    });
+  }
+
+  function clearChat() {
+    const container = document.getElementById('chatMessages');
+    const welcome = container.querySelector('.msg-row');
+    container.innerHTML = '';
+    if (welcome) container.appendChild(welcome);
+  }
+
   async function handleSend(e) {
-    if (e) e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const input = document.getElementById('userInput');
     const btn = document.getElementById('sendBtn');
     const query = input.value.trim();
@@ -415,7 +805,8 @@
     appendTypingIndicator();
 
     try {
-      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+      const csrfToken = csrfEl ? csrfEl.value : '';
       const resp = await fetch("{% url 'core:assistant_ask' %}", {
         method: 'POST',
         headers: {
@@ -430,12 +821,26 @@
     } catch (err) {
       removeTypingIndicator();
       appendAssistantMessage({
-        text: "I encountered an error connecting to the assistant backend. Please try again in a moment."
+        text: "I encountered a momentary connection issue. Please check your network or try asking again in a few seconds."
       });
     } finally {
       btn.disabled = false;
       input.focus();
     }
   }
+
+  // Keyboard shortcut Enter on input
+  document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('userInput');
+    if (input) {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleSend(e);
+        }
+      });
+      input.focus();
+    }
+  });
 </script>
 {% endblock %}
