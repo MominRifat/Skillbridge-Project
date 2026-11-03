@@ -3,7 +3,7 @@ from datetime import timedelta
 from selenium.webdriver.common.by import By
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from Sprint_4.selenium.base import BaseSprint4SeleniumTestCase
+from Sprint_4_Test.selenium.base import BaseSprint4SeleniumTestCase
 from apps.projects.models import Project, Team, TeamInvitation
 from apps.projects import services
 

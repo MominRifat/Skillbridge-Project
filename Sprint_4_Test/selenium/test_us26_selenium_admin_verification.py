@@ -3,7 +3,7 @@ from decimal import Decimal
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from django.contrib.auth import get_user_model
-from Sprint_4.selenium.base import BaseSprint4SeleniumTestCase
+from Sprint_4_Test.selenium.base import BaseSprint4SeleniumTestCase
 from apps.wallets.models import Deposit
 
 User = get_user_model()

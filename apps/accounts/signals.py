@@ -1,4 +1,6 @@
 from __future__ import annotations
+import os
+from decimal import Decimal
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from apps.accounts.models import Role, User
@@ -9,8 +11,9 @@ def bootstrap_user(sender, instance: User, created: bool, raw: bool=False, **kwa
         return
     from apps.profiles.models import ClientProfile, FreelancerProfile
     from apps.wallets.models import Wallet
-    from decimal import Decimal
-    Wallet.objects.get_or_create(user=instance, defaults={'available_balance': Decimal('5000.00')})
+
+    init_bal = Decimal(os.getenv('INITIAL_WALLET_BALANCE', '0.00'))
+    Wallet.objects.get_or_create(user=instance, defaults={'available_balance': init_bal})
     if instance.role == Role.CLIENT:
         ClientProfile.objects.get_or_create(user=instance)
     elif instance.role == Role.FREELANCER:

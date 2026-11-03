@@ -1,3 +1,4 @@
+import os
 import time
 from decimal import Decimal
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -15,7 +16,7 @@ class SkillbridgeSeleniumTestCase(StaticLiveServerTestCase):
         # Headless Chrome initialization
         try:
             options = ChromeOptions()
-            options.add_argument('--headless')
+            if os.getenv('SELENIUM_HEADLESS', 'false').lower() in ('true', '1', 'yes'): options.add_argument('--headless')
             options.add_argument('--disable-gpu')
             options.add_argument('--no-sandbox')
             options.add_argument('--window-size=1920,1080')
@@ -24,7 +25,7 @@ class SkillbridgeSeleniumTestCase(StaticLiveServerTestCase):
             # Fallback to Edge
             try:
                 edge_options = EdgeOptions()
-                edge_options.add_argument('--headless')
+                if os.getenv('SELENIUM_HEADLESS', 'false').lower() in ('true', '1', 'yes'): edge_options.add_argument('--headless')
                 edge_options.add_argument('--disable-gpu')
                 edge_options.add_argument('--no-sandbox')
                 edge_options.add_argument('--window-size=1920,1080')

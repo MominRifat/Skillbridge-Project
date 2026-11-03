@@ -44,7 +44,7 @@
           👥
         </div>
         <div>
-          <div style="font-weight:700; font-size:1rem; color:var(--text);">You are invited to join <u>{{ my_invite.team.name }}</u>!</div>
+          <div style="font-weight:700; font-size:1rem; color:var(--text);">You are invited to join {{ my_invite.team.name }}!</div>
           <div class="small muted" style="margin-top:2px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <span>Invited by <strong>{{ my_invite.invited_by.username }}</strong> (✉ {{ my_invite.invited_by.email }})</span>
             <span style="color:#d97706; font-weight:600;">⏳ Invitation expires in {{ my_invite.expires_at|timeuntil }} (48h policy)</span>
@@ -372,7 +372,7 @@
                           <span class="badge badge--error" style="font-size:0.7rem;">Expired</span>
                         {% else %}
                           <span class="badge badge--warning" style="font-size:0.7rem;" title="Expires in 48 hours">
-                            ⏳ {{ inv.expires_at|timeuntil }} left
+                            Invited &middot; ⏳ {{ inv.expires_at|timeuntil }} left
                           </span>
                         {% endif %}
                       </div>

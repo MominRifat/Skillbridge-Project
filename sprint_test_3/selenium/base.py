@@ -1,3 +1,4 @@
+import os
 import time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
@@ -11,11 +12,15 @@ class BaseSprint3SeleniumTestCase(StaticLiveServerTestCase):
         super().setUpClass()
         try:
             o = ChromeOptions()
-            for arg in ['--headless', '--disable-gpu', '--no-sandbox', '--window-size=1920,1080']: o.add_argument(arg)
+            args = ['--disable-gpu', '--no-sandbox', '--window-size=1920,1080']
+            if os.getenv('SELENIUM_HEADLESS', 'false').lower() in ('true', '1', 'yes'): args.append('--headless')
+            for arg in args: o.add_argument(arg)
             cls.driver = webdriver.Chrome(options=o)
         except Exception:
             o = EdgeOptions()
-            for arg in ['--headless', '--disable-gpu', '--no-sandbox', '--window-size=1920,1080']: o.add_argument(arg)
+            args = ['--disable-gpu', '--no-sandbox', '--window-size=1920,1080']
+            if os.getenv('SELENIUM_HEADLESS', 'false').lower() in ('true', '1', 'yes'): args.append('--headless')
+            for arg in args: o.add_argument(arg)
             cls.driver = webdriver.Edge(options=o)
         cls.driver.implicitly_wait(6)
 
