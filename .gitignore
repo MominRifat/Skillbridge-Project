@@ -8,9 +8,8 @@ db.sqlite3
 *.bak
 *.backup*
 
-# Media & Staticfiles
+# Media
 media/
-staticfiles/
 
 # Python
 __pycache__/
