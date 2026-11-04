@@ -163,7 +163,9 @@ if not _smtp_user or _smtp_user == 'your_email@gmail.com':
 if not _smtp_pass:
     _smtp_pass = 'tukb wszr wvtg usxr'
 
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'config.http_email_backend.HybridEmailBackend')
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '').strip()
+BREVO_API_KEY = os.getenv('BREVO_API_KEY', '').strip()
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')

@@ -19,7 +19,11 @@ services:
       - key: WEB_CONCURRENCY
         value: "2"
       - key: EMAIL_BACKEND
-        value: django.core.mail.backends.smtp.EmailBackend
+        value: config.http_email_backend.HybridEmailBackend
+      - key: RESEND_API_KEY
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
       - key: EMAIL_HOST
         value: smtp.gmail.com
       - key: EMAIL_PORT

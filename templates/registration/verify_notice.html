@@ -23,6 +23,23 @@
   <span>Sent to <strong>{{ request.user.email|default:"your registered email" }}</strong></span>
 </div>
 
+{% if latest_code %}
+<div style="background:var(--brand-50, #eef2ff); border:1.5px dashed var(--brand-400, #818cf8); border-radius:12px; padding:14px 16px; margin-bottom:20px; text-align:center;">
+  <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--brand-700, #4338ca); margin-bottom:2px;">
+    🔑 Live Evaluation / Instant Activation Code
+  </div>
+  <div style="font-size:1.8rem; font-weight:900; letter-spacing:0.25em; color:var(--brand-600, #4f46e5); font-family:monospace; margin:4px 0;">
+    {{ latest_code }}
+  </div>
+  <div style="font-size:0.75rem; color:var(--text-muted, #64748b); margin-bottom:10px;">
+    Render Free Tier restricts outbound SMTP port 587. You can instantly verify your account below:
+  </div>
+  <button type="button" class="btn btn--secondary btn--sm" onclick="document.getElementById('id_code').value='{{ latest_code }}'; this.closest('div').nextElementSibling.submit();" style="font-weight:700; width:100%; padding:8px 14px;">
+    ⚡ Click to Auto-Verify &amp; Enter Dashboard
+  </button>
+</div>
+{% endif %}
+
 <form method="post" action="{% url 'accounts:verify_notice' %}" novalidate>
   {% csrf_token %}
   <div class="otp-container">

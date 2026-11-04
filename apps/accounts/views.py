@@ -68,6 +68,12 @@ def logout(request):
 def verify_notice(request):
     if request.user.is_authenticated and request.user.is_email_verified:
         return redirect(request.user.dashboard_url)
+    latest_code = None
+    if request.user.is_authenticated:
+        from apps.accounts.models import EmailVerificationToken
+        tok = EmailVerificationToken.objects.filter(user=request.user, used_at__isnull=True).order_by('-created_at').first()
+        if tok and not tok.is_expired:
+            latest_code = tok.code
     if request.method == 'POST':
         code = request.POST.get('code', '').strip()
         try:
@@ -78,8 +84,8 @@ def verify_notice(request):
             return redirect(user.dashboard_url)
         except DomainError as exc:
             messages.error(request, exc.message)
-            return render(request, 'registration/verify_notice.html', {'code': code})
-    return render(request, 'registration/verify_notice.html')
+            return render(request, 'registration/verify_notice.html', {'code': code, 'latest_code': latest_code})
+    return render(request, 'registration/verify_notice.html', {'latest_code': latest_code})
 
 @require_http_methods(['POST'])
 def resend_verification(request):
