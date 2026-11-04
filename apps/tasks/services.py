@@ -1,6 +1,9 @@
 from __future__ import annotations
+import logging
 import re
+from decimal import Decimal
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 from apps.core.exceptions import PermissionDenied, ValidationFailed
 from apps.core.models import ActivityVerb
@@ -9,6 +12,8 @@ from apps.accounts.models import User
 from apps.notifications.models import NotificationType
 from apps.notifications.services import notify
 from apps.tasks.models import Task, Subtask, TaskActivity, TaskFile, TaskComment
+
+logger = logging.getLogger('skillbridge.tasks')
 
 def log_task_activity(project, actor, action: str, details: str, task=None, subtask=None) -> TaskActivity:
     act = TaskActivity.objects.create(project=project, task=task, subtask=subtask, actor=actor, action=action, details=details[:400])
@@ -20,7 +25,20 @@ def log_task_activity(project, actor, action: str, details: str, task=None, subt
 def create_task(project, title: str, description: str = '', created_by: User = None, assigned_to: User | None = None, priority='MEDIUM', skillcoin_allocation=0, deadline=None) -> Task:
     if created_by and not project.has_access(created_by): raise PermissionDenied("Access denied.")
     if not title.strip(): raise ValidationFailed("Title cannot be empty.")
-    t = Task.objects.create(project=project, title=title.strip(), description=description.strip(), created_by=created_by, assigned_to=assigned_to, skillcoin_allocation=skillcoin_allocation, deadline=deadline, priority=priority, status=Task.Status.TODO)
+
+    alloc_amt = Decimal(str(skillcoin_allocation or 0))
+    if alloc_amt < 0:
+        raise ValidationFailed("Allocation cannot be negative.")
+    if alloc_amt > 0:
+        allocated_so_far = Task.objects.filter(project=project).exclude(status=Task.Status.CANCELLED).aggregate(total=Sum('skillcoin_allocation'))['total'] or Decimal('0')
+        project_budget = Decimal(str(project.final_price or 0))
+        remaining = max(Decimal('0'), project_budget - allocated_so_far)
+        if alloc_amt > remaining:
+            raise ValidationFailed(
+                f"Cannot allocate {alloc_amt:,.2f} SKC. Only {remaining:,.2f} SKC remains unallocated from the funded project budget of {project_budget:,.2f} SKC. Milestone allocations are divided strictly from the client's pre-funded budget held in escrow without extra charges."
+            )
+
+    t = Task.objects.create(project=project, title=title.strip(), description=description.strip(), created_by=created_by, assigned_to=assigned_to, skillcoin_allocation=alloc_amt, deadline=deadline, priority=priority, status=Task.Status.TODO)
     if created_by: log_task_activity(project=project, task=t, actor=created_by, action='CREATED', details=f'Created task "{t.title}"')
     if assigned_to and created_by:
         notify(assigned_to, NotificationType.TASK_ASSIGNED, f'Task assigned: {t.title}', message=f'{created_by.username} assigned you to "{t.title}".', actor=created_by, target_url=project.get_absolute_url(), email=True)
@@ -110,10 +128,10 @@ def update_task_status(task: Task, new_status: str, actor: User, is_auto: bool =
                             escrow_obj.held_amount -= amt
                             escrow_obj.released_amount += amt
                             escrow_obj.save(update_fields=['held_amount', 'released_amount', 'updated_at'])
-                    except Exception:
-                        pass
-        except Exception:
-            logger.exception('Failed to disburse milestone subtask payout')
+                    except Exception as e:
+                        logger.warning('Failed to update escrow held amount: %s', e)
+        except Exception as e:
+            logger.exception('Failed to disburse milestone subtask payout: %s', e)
     return task
 
 @transaction.atomic

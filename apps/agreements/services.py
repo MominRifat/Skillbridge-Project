@@ -108,10 +108,21 @@ def complete_agreement_and_release_payment(*, agreement: Agreement, client, feed
 
     client.wallet.refresh_from_db()
     if client_debit_remaining > ZERO:
-        c_src = WalletTransaction.Bucket.RESERVED if client.wallet.reserved_balance >= client_debit_remaining else (WalletTransaction.Bucket.ESCROW if client.wallet.escrow_balance >= client_debit_remaining else WalletTransaction.Bucket.AVAILABLE)
-        debit_client = ledger.move(user=client, amount=client_debit_remaining, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=c_src, to_bucket=WalletTransaction.Bucket.EXTERNAL, job=job, project=project, counterparty=freelancer, actor=client, description=f'Payment for completed job “{job.title[:60]}”')
+        c_src = WalletTransaction.Bucket.ESCROW if client.wallet.escrow_balance >= client_debit_remaining else (WalletTransaction.Bucket.RESERVED if client.wallet.reserved_balance >= client_debit_remaining else WalletTransaction.Bucket.AVAILABLE)
+        txn_type = WalletTransaction.Type.ESCROW_RELEASE if c_src == WalletTransaction.Bucket.ESCROW else WalletTransaction.Type.PROJECT_PAYMENT
+        debit_client = ledger.move(user=client, amount=client_debit_remaining, transaction_type=txn_type, from_bucket=c_src, to_bucket=WalletTransaction.Bucket.EXTERNAL, job=job, project=project, counterparty=freelancer, actor=client, description=f'Payment for completed job “{job.title[:60]}”')
         credit_freelancer = ledger.move(user=freelancer, amount=leader_share, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=WalletTransaction.Bucket.EXTERNAL, to_bucket=WalletTransaction.Bucket.AVAILABLE, job=job, project=project, counterparty=client, actor=client, related=debit_client, description=f'Payment received for completed job “{job.title[:60]}”')
         WalletTransaction.objects.filter(pk=debit_client.pk).update(related_transaction=credit_freelancer)
+        try:
+            from apps.escrow.models import Escrow
+            escrow_rec = Escrow.objects.filter(agreement=agreement).first()
+            if escrow_rec:
+                escrow_rec.released_amount += client_debit_remaining
+                escrow_rec.held_amount = max(ZERO, escrow_rec.held_amount - client_debit_remaining)
+                escrow_rec.status = Escrow.Status.RELEASED
+                escrow_rec.save(update_fields=['released_amount', 'held_amount', 'status', 'updated_at'])
+        except Exception:
+            pass
 
     client.wallet.refresh_from_db()
     remainder = max(ZERO, job.reserved_amount - amount)

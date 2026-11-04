@@ -1,4 +1,5 @@
 from __future__ import annotations
+from decimal import Decimal
 from django.contrib import messages
 from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
@@ -17,7 +18,6 @@ def task_create(request, project_public_id):
     uid = request.POST.get('assigned_to')
     raw_alloc = request.POST.get('skillcoin_allocation', '0').strip() or '0'
     try:
-        from decimal import Decimal
         alloc_amt = Decimal(raw_alloc)
     except Exception:
         alloc_amt = Decimal('0')
@@ -31,8 +31,14 @@ def task_create(request, project_public_id):
             request.POST.get('priority','MEDIUM'),
             skillcoin_allocation=alloc_amt
         )
-        messages.success(request, f'Task "{t.title}" created.')
-    except DomainError as e: messages.error(request, e.message)
+        if alloc_amt > Decimal('0'):
+            messages.success(request, f'Task "{t.title}" created with {alloc_amt:,.2f} SKC allocated from the funded project budget. (No extra funds charged to client).')
+        else:
+            messages.success(request, f'Task "{t.title}" created.')
+    except DomainError as e:
+        messages.error(request, e.message)
+    except Exception as e:
+        messages.error(request, f'Unable to create task: {str(e)}')
     return redirect('projects:detail', public_id=p.public_id)
 
 @verified_required
@@ -42,7 +48,10 @@ def task_status_update(request, task_id):
     try:
         services.update_task_status(t, request.POST.get('status'), request.user)
         messages.success(request, 'Task status updated.')
-    except DomainError as e: messages.error(request, e.message)
+    except DomainError as e:
+        messages.error(request, e.message)
+    except Exception as e:
+        messages.error(request, f'Unable to update task status: {str(e)}')
     return redirect('projects:detail', public_id=t.project.public_id)
 
 @verified_required
@@ -53,7 +62,10 @@ def subtask_create(request, task_id):
     try:
         st = services.create_subtask(t, request.POST.get('title','').strip(), request.POST.get('description','').strip(), request.user, User.objects.filter(pk=uid).first() if uid else None)
         messages.success(request, f'Subtask "{st.title}" added.')
-    except DomainError as e: messages.error(request, e.message)
+    except DomainError as e:
+        messages.error(request, e.message)
+    except Exception as e:
+        messages.error(request, f'Unable to add subtask: {str(e)}')
     return redirect('projects:detail', public_id=t.project.public_id)
 
 @verified_required
@@ -63,7 +75,10 @@ def subtask_assign(request, subtask_id):
     try:
         services.assign_subtask(st, get_object_or_404(User, pk=request.POST.get('assigned_to')), request.user)
         messages.success(request, f'Assigned "{st.title}".')
-    except DomainError as e: messages.error(request, e.message)
+    except DomainError as e:
+        messages.error(request, e.message)
+    except Exception as e:
+        messages.error(request, f'Unable to assign subtask: {str(e)}')
     return redirect('projects:detail', public_id=st.task.project.public_id)
 
 @verified_required
@@ -73,7 +88,10 @@ def subtask_status_update(request, subtask_id):
     try:
         services.update_subtask_status(st, request.POST.get('status'), request.user)
         messages.success(request, 'Status updated.')
-    except DomainError as e: messages.error(request, e.message)
+    except DomainError as e:
+        messages.error(request, e.message)
+    except Exception as e:
+        messages.error(request, f'Unable to update status: {str(e)}')
     return redirect('projects:detail', public_id=st.task.project.public_id)
 
 @verified_required
@@ -84,7 +102,10 @@ def task_file_upload(request, task_id):
         try:
             services.upload_task_file(t, request.user, request.FILES['file'])
             messages.success(request, 'File uploaded.')
-        except DomainError as e: messages.error(request, e.message)
+        except DomainError as e:
+            messages.error(request, e.message)
+        except Exception as e:
+            messages.error(request, f'Unable to upload file: {str(e)}')
     return redirect('projects:detail', public_id=t.project.public_id)
 
 @verified_required

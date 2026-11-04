@@ -29,6 +29,8 @@ def project_detail(request, public_id):
     t = getattr(p, 'team', None)
     from apps.tasks.services import check_and_auto_approve_task
     from apps.tasks.models import Task
+    from decimal import Decimal
+    from django.db.models import Sum
     for rev_task in p.tasks.filter(status=Task.Status.IN_REVIEW):
         check_and_auto_approve_task(rev_task)
     reviews = p.reviews.select_related('reviewer', 'reviewee').all()
@@ -37,6 +39,11 @@ def project_detail(request, public_id):
     can_review = (p.status == Project.Status.COMPLETED) and (request.user.pk in (p.client_id, p.freelancer_id)) and not my_review
     can_dispute = (request.user.pk in (p.client_id, p.freelancer_id))
     reviewee = p.freelancer if request.user.pk == p.client_id else p.client
+
+    project_budget = Decimal(str(p.final_price or 0))
+    allocated_total = p.tasks.exclude(status=Task.Status.CANCELLED).aggregate(total=Sum('skillcoin_allocation'))['total'] or Decimal('0')
+    remaining_budget = max(Decimal('0'), project_budget - allocated_total)
+
     return render(request, 'projects/detail.html', {
         'project': p, 'team': t, 'is_owner': p.is_owner(request.user), 'page_title': p.title, 'nav': 'projects',
         'team_members': t.members.select_related('user').all() if t else [],
@@ -53,6 +60,9 @@ def project_detail(request, public_id):
         'can_review': can_review,
         'can_dispute': can_dispute,
         'reviewee': reviewee,
+        'project_budget': project_budget,
+        'allocated_total': allocated_total,
+        'remaining_budget': remaining_budget,
     })
 
 @verified_required
@@ -274,7 +284,8 @@ def project_complete_view(request, public_id):
         leader_share = max(ZERO, amount - already_paid_to_members)
         if leader_share > ZERO:
             c_src = WalletTransaction.Bucket.ESCROW if client.wallet.escrow_balance >= leader_share else (WalletTransaction.Bucket.RESERVED if client.wallet.reserved_balance >= leader_share else WalletTransaction.Bucket.AVAILABLE)
-            d_txn = ledger.move(user=client, amount=leader_share, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=c_src, to_bucket=WalletTransaction.Bucket.EXTERNAL, project=p, counterparty=freelancer, actor=client, description=f'Final leader payment for project “{p.title}”')
+            txn_type = WalletTransaction.Type.ESCROW_RELEASE if c_src == WalletTransaction.Bucket.ESCROW else WalletTransaction.Type.PROJECT_PAYMENT
+            d_txn = ledger.move(user=client, amount=leader_share, transaction_type=txn_type, from_bucket=c_src, to_bucket=WalletTransaction.Bucket.EXTERNAL, project=p, counterparty=freelancer, actor=client, description=f'Final leader payment for project “{p.title}”')
             ledger.move(user=freelancer, amount=leader_share, transaction_type=WalletTransaction.Type.PROJECT_PAYMENT, from_bucket=WalletTransaction.Bucket.EXTERNAL, to_bucket=WalletTransaction.Bucket.AVAILABLE, project=p, counterparty=client, actor=client, related=d_txn, description=f'Project payment received for “{p.title}”')
 
         p.status = Project.Status.COMPLETED
