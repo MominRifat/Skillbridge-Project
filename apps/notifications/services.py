@@ -40,20 +40,40 @@ def unread_count(user) -> int:
         return 0
     return Notification.objects.for_user(user).unread().count()
 
-def _email(note: Notification, template: str, context: dict):
+def _send_notification_email_sync(note_pk: int, template: str, context: dict):
     try:
+        from apps.notifications.models import Notification
         from django.core.mail import EmailMultiAlternatives
         from django.template.loader import render_to_string
-        template = template or 'emails/notification.html'
+        note = Notification.objects.select_related('recipient', 'actor').filter(pk=note_pk).first()
+        if not note or not note.recipient or not note.recipient.email:
+            return
+
+        if note.target_url and note.target_url.startswith('/'):
+            site_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000').rstrip('/')
+            note.target_url = f"{site_url}{note.target_url}"
+
+        tmpl = template or 'emails/notification.html'
         ctx = {'note': note, 'recipient': note.recipient, 'skillcoin': settings.SKILLCOIN, **context}
-        html = render_to_string(template, ctx)
+        html = render_to_string(tmpl, ctx)
         text = render_to_string('emails/notification.txt', ctx)
-        mail = EmailMultiAlternatives(subject=f'[Skillbridge] {note.title}', body=text, to=[note.recipient.email])
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+        mail = EmailMultiAlternatives(subject=f'[Skillbridge] {note.title}', body=text, from_email=from_email, to=[note.recipient.email])
         mail.attach_alternative(html, 'text/html')
         mail.send(fail_silently=False)
         Notification.objects.filter(pk=note.pk).update(emailed_at=timezone.now())
-    except Exception:
-        logger.warning('notification email failed id=%s', note.public_id, exc_info=True)
+        logger.info('Notification email delivered to %s for note %s', note.recipient.email, note.pk)
+    except Exception as exc:
+        logger.error('Failed to send notification email for note %s: %s', note_pk, exc, exc_info=True)
+
+def _email(note: Notification, template: str, context: dict):
+    import sys
+    import threading
+    is_testing = 'test' in sys.argv or getattr(settings, 'TESTING', False)
+    if is_testing:
+        _send_notification_email_sync(note.pk, template, context)
+    else:
+        threading.Thread(target=_send_notification_email_sync, args=(note.pk, template, context), daemon=True).start()
 
 def _clean(metadata: dict) -> dict:
     from decimal import Decimal

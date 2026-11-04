@@ -75,6 +75,8 @@ def send_verification_email(*, user: User) -> EmailVerificationToken:
     verification = EmailVerificationToken.objects.create(user=user, email=user.email, expires_at=timezone.now() + timedelta(hours=hours))
 
     def _send():
+        import logging
+        logger = logging.getLogger(__name__)
         from django.core.mail import EmailMultiAlternatives
         from django.template.loader import render_to_string
         site_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000').rstrip('/')
@@ -83,13 +85,21 @@ def send_verification_email(*, user: User) -> EmailVerificationToken:
         try:
             html = render_to_string('emails/verify_email.html', ctx)
             text = render_to_string('emails/verify_email.txt', ctx)
-            mail = EmailMultiAlternatives(subject='[SkillBridge] Verify your email address', body=text, to=[user.email])
+            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+            mail = EmailMultiAlternatives(subject='[SkillBridge] Verify your email address', body=text, from_email=from_email, to=[user.email])
             mail.attach_alternative(html, 'text/html')
             mail.send(fail_silently=False)
+            logger.info('Verification email delivered to %s', user.email)
         except Exception as exc:
-            import logging
-            logging.getLogger(__name__).error('Verification email sending failed: %s', exc, exc_info=True)
-    transaction.on_commit(_send)
+            logger.error('Verification email sending failed to %s: %s', user.email, exc, exc_info=True)
+
+    import sys
+    import threading
+    is_testing = 'test' in sys.argv or getattr(settings, 'TESTING', False)
+    if is_testing:
+        transaction.on_commit(_send)
+    else:
+        transaction.on_commit(lambda: threading.Thread(target=_send, daemon=True).start())
     return verification
 
 @transaction.atomic()

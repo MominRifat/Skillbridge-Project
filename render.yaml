@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application"
+    startCommand: "python manage.py migrate && gunicorn config.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
@@ -17,7 +17,19 @@ services:
           name: skillbridge-db
           property: connectionString
       - key: WEB_CONCURRENCY
-        value: "4"
+        value: "2"
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
 
 databases:
   - name: skillbridge-db

@@ -87,7 +87,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.core.context_processors.site',
-                'apps.wallets.context_processors.wallet'
+                'apps.wallets.context_processors.wallet',
+                'apps.notifications.context_processors.unread'
             ],
             'builtins': ['apps.core.templatetags.skillbridge']
         }
@@ -156,17 +157,20 @@ MEDIA_ROOT = BASE_DIR / 'media'
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
 _smtp_user = os.getenv('EMAIL_HOST_USER', '').strip()
-_default_backend = 'django.core.mail.backends.smtp.EmailBackend' if _smtp_user and _smtp_user != 'your_email@gmail.com' else 'django.core.mail.backends.console.EmailBackend'
+_smtp_pass = os.getenv('EMAIL_HOST_PASSWORD', '').strip()
+_default_backend = 'django.core.mail.backends.smtp.EmailBackend' if (_smtp_user and _smtp_pass and _smtp_user != 'your_email@gmail.com') else 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', _default_backend)
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
 EMAIL_HOST_USER = _smtp_user
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '').strip()
+EMAIL_HOST_PASSWORD = _smtp_pass
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', 10))
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f"SkillBridge <{_smtp_user or 'noreply@skillbridge.local'}>")
 
-SITE_URL = os.getenv('SITE_URL', 'http://127.0.0.1:8000')
+_default_site_url = f"https://{RENDER_EXTERNAL_HOSTNAME}" if RENDER_EXTERNAL_HOSTNAME else 'http://127.0.0.1:8000'
+SITE_URL = os.getenv('SITE_URL', _default_site_url)
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 SESSION_COOKIE_HTTPONLY = True
@@ -208,3 +212,42 @@ PAYMENT_CHANNELS = {
 }
 
 AI = {'ENABLED': True, 'PROVIDER': None}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} [{name}] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'apps': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
