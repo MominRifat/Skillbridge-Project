@@ -71,3 +71,13 @@
 .list-row.is-unread { background: var(--brand-50); }
 .list-row.is-unread .list-row__title::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--brand-600); margin-right: 7px; vertical-align: middle; }
 :root[data-theme="dark"] .list-row.is-unread { background: rgba(139, 92, 246, .1); }
+
+@media (max-width: 560px) {
+  .app-top { padding: 0 12px; height: 56px; gap: 8px; }
+  .app-top__title { font-size: 0.95rem; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top-role-badge { display: none; }
+  .app-body { padding: 14px 10px; }
+  .verify-banner { padding: 8px 12px; font-size: 0.8rem; }
+  .list-row { padding: 12px 14px; gap: 10px; }
+  .app-side { width: 270px; max-width: 85vw; }
+}

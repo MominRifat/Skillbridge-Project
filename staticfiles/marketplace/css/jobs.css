@@ -156,3 +156,17 @@
     grid-column: span 1;
   }
 }
+
+@media (max-width: 520px) {
+  .top-filter-bar {
+    padding: 14px 12px;
+  }
+  .job-row .card__body {
+    padding-right: 48px;
+    padding-left: 14px;
+  }
+  .job-save {
+    top: 10px;
+    right: 10px;
+  }
+}

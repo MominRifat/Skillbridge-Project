@@ -11,8 +11,11 @@
 .dash-overview-subtitle { font-size: 0.92rem; color: var(--text-muted); margin: 0; line-height: 1.45; }
 .dash-overview-hero__action { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 @media (max-width: 768px) {
-.dash-overview-hero { flex-direction: column; align-items: flex-start; padding: 20px; }
-.dash-overview-hero__action { width: 100%; margin-top: 14px; }
+  .dash-overview-hero { flex-direction: column; align-items: flex-start; padding: 18px 16px; }
+  .dash-overview-hero__action { width: 100%; margin-top: 14px; flex-wrap: wrap; gap: 8px; }
+  .dash-overview-hero__action .btn { flex: 1 1 120px; text-align: center; justify-content: center; }
+  .dash-overview-title { font-size: 1.35rem; }
+  .dash-grid .stat__value { font-size: 1.5rem; }
 }
 .dash-grid .card.stat { display: flex; flex-direction: column; padding: var(--gap-4) var(--gap-5); border-radius: var(--r-xl); border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow-sm); text-decoration: none; position: relative; overflow: hidden; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: transform var(--dur-normal, .25s) var(--ease-out, ease), box-shadow var(--dur-normal, .25s) var(--ease-out, ease), border-color var(--dur-normal, .25s) var(--ease-out, ease); }
 :root[data-theme="dark"] .dash-grid .card.stat { border-color: rgba(255, 255, 255, 0.06); }

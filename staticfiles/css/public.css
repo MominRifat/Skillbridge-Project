@@ -89,3 +89,17 @@
 .prose h3 { margin-top: var(--gap-5); }
 .prose ul { padding-left: 1.2em; }
 .prose li { margin-bottom: var(--gap-2); }
+
+@media (max-width: 560px) {
+  .site-header__inner { gap: var(--gap-2); height: 60px; }
+  .brand__text { display: none; }
+  .header-actions { gap: 6px; }
+  .header-actions .btn--sm { padding: 5px 9px; font-size: 0.78rem; }
+  .nav-login-btn, .nav-subtle-link { padding: 6px 12px; font-size: 0.78rem; }
+  .site-nav { top: 60px; box-shadow: var(--shadow-lg); z-index: 100; }
+  .category-grid { grid-template-columns: 1fr; }
+  .stat-strip { grid-template-columns: 1fr; }
+  .cta-band { padding: 36px 16px; border-radius: var(--r-lg); }
+  .cta-band h2 { font-size: 1.45rem; }
+  .footer-bottom { flex-direction: column; text-align: center; gap: 8px; }
+}

@@ -95,7 +95,7 @@ select option { background-color: var(--surface, #ffffff); color: var(--text, #0
 .alert--warning { background: var(--warn-bg); border-color: var(--warn-line); color: var(--warn-fg); }
 .alert--error { background: var(--danger-bg); border-color: var(--danger-line); color: var(--danger-fg); }
 .alert a { color: inherit; text-decoration: underline; }
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-radius: var(--r-md); }
 .table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .table th, .table td { padding: 11px var(--gap-4); text-align: left; vertical-align: middle; }
 .table thead th { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); font-weight: 700; border-bottom: 1px solid var(--line-strong); background: var(--surface-2); white-space: nowrap; backdrop-filter: blur(8px); }
@@ -162,3 +162,19 @@ dialog.modal::backdrop { background: rgba(0, 0, 0, .45); backdrop-filter: blur(4
 .countdown { display: inline-flex; align-items: baseline; gap: 5px; font-variant-numeric: tabular-nums; font-weight: 700; }
 .countdown--urgent { color: var(--danger-fg); }
 .countdown--soon { color: var(--warn-fg); }
+
+/* Responsive Mobile Enhancements for Components */
+@media (max-width: 560px) {
+  .card__body { padding: 16px 14px; }
+  .card__head { padding: 14px 14px; flex-wrap: wrap; gap: 8px; }
+  .card__foot { padding: 12px 14px; }
+  .stat { padding: 14px 14px; }
+  .stat__value { font-size: 1.45rem; }
+  .btn-group { width: 100%; }
+  .btn-group .btn { flex: 1 1 auto; justify-content: center; }
+  .alert { padding: 12px 12px; gap: 8px; font-size: 0.88rem; }
+  .table { min-width: 520px; }
+  .toast-stack { left: 12px; right: 12px; max-width: none; bottom: 12px; }
+  .pagination { gap: 4px; }
+  .pagination a, .pagination span { min-width: 32px; height: 32px; padding: 0 8px; font-size: 0.82rem; }
+}

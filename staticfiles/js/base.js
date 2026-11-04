@@ -27,7 +27,23 @@
       return;
     }
     if (event.target.closest("[data-side-toggle]")) {
-      document.querySelector(".app").classList.toggle("is-open");
+      const app = document.querySelector(".app");
+      if (app) app.classList.toggle("is-open");
+      return;
+    }
+
+    // Mobile click-outside to dismiss public site-nav menu
+    const siteNav = document.getElementById("site-nav");
+    if (siteNav && !siteNav.hasAttribute("hidden") && !event.target.closest("#site-nav") && !event.target.closest("[data-nav-toggle]")) {
+      siteNav.setAttribute("hidden", "");
+      const navBtn = document.querySelector("[data-nav-toggle]");
+      if (navBtn) navBtn.setAttribute("aria-expanded", "false");
+    }
+
+    // Mobile click-outside on backdrop to dismiss dashboard sidebar
+    const appEl = document.querySelector(".app");
+    if (appEl && appEl.classList.contains("is-open") && !event.target.closest(".app-side") && !event.target.closest("[data-side-toggle]")) {
+      appEl.classList.remove("is-open");
     }
   });
 

@@ -14,4 +14,13 @@
 .composer textarea { resize: none; min-height: 64px; }
 .composer__actions { display: flex; justify-content: flex-end; gap: var(--gap-2); margin-top: var(--gap-2); }
 .composer label.btn { cursor: pointer; }
-@media (max-width: 1024px) {.conversation { height: auto; }.thread { max-height: 60vh; } }
+@media (max-width: 1024px) {
+  .conversation { height: auto; }
+  .thread { max-height: 60vh; }
+}
+@media (max-width: 600px) {
+  .msg { max-width: 92%; }
+  .composer { padding: 10px 12px; }
+  .thread { padding: 12px 8px; }
+  .conversation { height: calc(100dvh - 140px); min-height: 360px; }
+}

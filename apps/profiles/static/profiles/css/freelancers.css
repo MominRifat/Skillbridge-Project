@@ -199,3 +199,16 @@ select option {
     grid-column: span 1;
   }
 }
+
+@media (max-width: 520px) {
+  .top-filter-bar {
+    padding: 14px 12px;
+  }
+  .freelancer-card .card__body {
+    padding: 16px 14px;
+  }
+  .freelancer-card .avatar {
+    width: 44px;
+    height: 44px;
+  }
+}
