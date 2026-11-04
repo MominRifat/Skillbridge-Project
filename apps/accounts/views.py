@@ -72,7 +72,7 @@ def verify_notice(request):
     if request.user.is_authenticated:
         from apps.accounts.models import EmailVerificationToken
         tok = EmailVerificationToken.objects.filter(user=request.user, used_at__isnull=True).order_by('-created_at').first()
-        if tok and not tok.is_expired:
+        if tok and tok.is_valid:
             latest_code = tok.code
     if request.method == 'POST':
         code = request.POST.get('code', '').strip()
