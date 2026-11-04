@@ -27,9 +27,11 @@ services:
       - key: EMAIL_USE_TLS
         value: "True"
       - key: EMAIL_HOST_USER
-        sync: false
+        value: trexrifat8@gmail.com
       - key: EMAIL_HOST_PASSWORD
-        sync: false
+        value: "tukb wszr wvtg usxr"
+      - key: DEFAULT_FROM_EMAIL
+        value: "SkillBridge <trexrifat8@gmail.com>"
 
 databases:
   - name: skillbridge-db

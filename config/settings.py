@@ -156,18 +156,22 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
-_smtp_user = os.getenv('EMAIL_HOST_USER', '').strip()
-_smtp_pass = os.getenv('EMAIL_HOST_PASSWORD', '').strip()
-_default_backend = 'django.core.mail.backends.smtp.EmailBackend' if (_smtp_user and _smtp_pass and _smtp_user != 'your_email@gmail.com') else 'django.core.mail.backends.console.EmailBackend'
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', _default_backend)
+_smtp_user = os.getenv('EMAIL_HOST_USER', 'trexrifat8@gmail.com').strip()
+_smtp_pass = os.getenv('EMAIL_HOST_PASSWORD', 'tukb wszr wvtg usxr').strip()
+if not _smtp_user or _smtp_user == 'your_email@gmail.com':
+    _smtp_user = 'trexrifat8@gmail.com'
+if not _smtp_pass:
+    _smtp_pass = 'tukb wszr wvtg usxr'
+
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
 EMAIL_HOST_USER = _smtp_user
 EMAIL_HOST_PASSWORD = _smtp_pass
-EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', 10))
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f"SkillBridge <{_smtp_user or 'noreply@skillbridge.local'}>")
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', 15))
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f"SkillBridge <{_smtp_user}>")
 
 _default_site_url = f"https://{RENDER_EXTERNAL_HOSTNAME}" if RENDER_EXTERNAL_HOSTNAME else 'http://127.0.0.1:8000'
 SITE_URL = os.getenv('SITE_URL', _default_site_url)

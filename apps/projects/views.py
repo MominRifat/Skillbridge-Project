@@ -76,13 +76,38 @@ def invite_member(request, public_id):
         elif email:
             invitee = User.objects.filter(email__iexact=email).first()
             if not invitee:
-                messages.error(request, f"No user registered with email '{email}'.")
+                # Send external invitation email inviting them to register and collaborate
+                from django.core.mail import send_mail
+                from django.conf import settings
+                import threading
+                site_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000').rstrip('/')
+                reg_url = f"{site_url}{reverse('accounts:register')}"
+                subj = f"[SkillBridge] Invitation to join team '{p.team.name}'"
+                body = (
+                    f"Hello,\n\n"
+                    f"{request.user.full_name or request.user.username} ({request.user.email}) has invited you to collaborate "
+                    f"on the project '{p.title}' in the team '{p.team.name}' on SkillBridge!\n\n"
+                    f"To collaborate and accept tasks, please create your SkillBridge account here:\n"
+                    f"{reg_url}\n\n"
+                    f"SkillBridge Freelancing & Collaboration Platform"
+                )
+                from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+                threading.Thread(
+                    target=send_mail,
+                    args=(subj, body, from_email, [email]),
+                    kwargs={'fail_silently': True},
+                    daemon=True
+                ).start()
+                messages.success(request, f"Invitation email sent to {email}. Once they register on SkillBridge, they can join the team.")
                 return redirect(f"{reverse('projects:detail', kwargs={'public_id': p.public_id})}#team-workspace")
         else:
             messages.error(request, "Please select a freelancer or provide an email address.")
             return redirect(f"{reverse('projects:detail', kwargs={'public_id': p.public_id})}#team-workspace")
         try:
-            services.invite_to_team(p.team, invitee, request.user, request.POST.get('message', ''))
+            inv = services.invite_to_team(p.team, invitee, request.user, request.POST.get('message', ''))
+            from apps.notifications.triggers import trigger_team_invitation_email
+            import threading
+            threading.Thread(target=trigger_team_invitation_email, args=(inv,), daemon=True).start()
             messages.success(request, f"Invitation sent to {invitee.username} ({invitee.email}).")
         except DomainError as e:
             messages.error(request, e.message)
