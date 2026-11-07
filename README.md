@@ -2,155 +2,259 @@
 
 # 🌉 SkillBridge — Enterprise Freelance Marketplace & Escrow Platform
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-skillbridge--1--7gc1.onrender.com-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://skillbridge-1-7gc1.onrender.com/)
 [![Django](https://img.shields.io/badge/Django-5.x-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
-[![Render](https://img.shields.io/badge/Cloud_Deploy-Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://render.com/)
-[![Escrow Security](https://img.shields.io/badge/Fintech-Escrow_Protection-blueviolet?style=for-the-badge&logo=shield&logoColor=white)](#)
-[![Methodology](https://img.shields.io/badge/Agile-Scrum_Sprints-orange?style=for-the-badge&logo=jira&logoColor=white)](#)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Database](https://img.shields.io/badge/PostgreSQL_%7C_SQLite-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Automated Testing](https://img.shields.io/badge/Testing-Selenium_%26_Django_Test-43B02A?style=for-the-badge&logo=selenium&logoColor=white)](#)
+[![Deployment](https://img.shields.io/badge/Deploy-Render_Cloud-blueviolet?style=for-the-badge&logo=render&logoColor=white)](https://render.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](#)
 
 <p align="center">
-  <b>A full-featured, secure digital marketplace connecting skilled freelancers with clients worldwide.</b>
+  <b>A comprehensive, production-grade freelance marketplace and contract ecosystem built with Django.</b>
   <br />
-  Engineered with milestone-based escrow contracts, integrated wallet accounting, real-time negotiation pipelines, and end-to-end task tracking.
+  Designed with milestone-based financial escrow protection, interactive negotiations, threaded client messaging, and end-to-end task tracking.
 </p>
+
+[🌐 Live Demo Application](https://skillbridge-1-7gc1.onrender.com/) • [✨ Features](#-key-features) • [🛠️ Tech Stack](#️-comprehensive-tech-stack) • [🚀 How to Run](#-complete-how-to-run--installation-guide) • [🏗️ Architecture](#️-2d3d-system-architecture)
 
 ---
 
 </div>
 
-## 📌 Executive Overview
+## 📌 About the Project
 
-**SkillBridge** is a modern solution to freelance engagement risks. By combining a granular modular application architecture with an automated escrow safeguard, SkillBridge ensures that clients only pay for verified milestones while freelancers have guaranteed payment protection prior to project commencement.
+**SkillBridge** solves the fundamental trust dilemma in freelance contracting: *Will the freelancer deliver quality work?* and *Will the client pay on time?*
+
+By decoupling payments into **milestone-funded escrow vaults**, clients pre-fund milestones before work commences, while funds remain locked until deliverables are reviewed and verified. Built following strict **Agile Scrum methodology** (Sprint 4 & Sprint 5 test verified), SkillBridge provides a transparent, secure environment for employers and remote professionals.
 
 ---
 
-## 🏛️ 2D/3D Multi-App Architecture & Ecosystem
+## 🛠️ Comprehensive Tech Stack
+
+| Domain | Technology | Version / Spec | Purpose & Responsibility |
+| :--- | :--- | :--- | :--- |
+| **Backend Framework** | **Django** | `5.0+` | Core MVC framework, URL routing, ORM, and authentication |
+| **Programming Language** | **Python** | `3.11+` | Business logic, backend controllers, and unit testing |
+| **Production Database** | **PostgreSQL** | `15+` | Scalable relational storage (`psycopg2-binary`, `dj-database-url`) |
+| **Development Database** | **SQLite3** | Native | Zero-configuration local development and rapid prototyping |
+| **Automated E2E Testing**| **Selenium** | `>=4.20.0` | Browser simulation, UI validation, and user journey testing |
+| **WSGI / App Server** | **Gunicorn** | `>=21.2.0` | Production WSGI HTTP server powering Render web service |
+| **Static Asset Engine** | **WhiteNoise** | `>=6.6.0` | Production static file serving without external CDN dependencies |
+| **Image Processing** | **Pillow** | `>=10.0.0` | User avatar optimization, portfolio image thumbnailing |
+| **Frontend UI / UX** | **HTML5 + CSS3 + JS** | Modern ES6+ | Responsive layout, custom glassmorphism, dynamic DOM updates |
+| **Cloud Hosting** | **Render** | IaC (`render.yaml`) | Automated Git-driven continuous deployment pipeline |
+
+---
+
+## 🏗️ 2D/3D System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph User_Gateways["👥 User & Authentication Layer"]
-        Clients["🏢 Clients / Employers"]
-        Freelancers["💻 Freelancers / Talent"]
-        Accounts["🔐 apps/accounts & profiles & portfolios"]
+    subgraph Client_Gateways["👥 Client & Freelancer Interfaces"]
+        ClientUser["🏢 Employers / Clients"]
+        FreelancerUser["💻 Freelancers / Talent"]
     end
 
-    subgraph Marketplace_Negotiation["💼 Marketplace & Deal Making"]
-        Market["🛒 apps/marketplace & projects & tasks"]
-        Proposals["📄 apps/proposals & negotiations"]
-        Agreements["📝 apps/agreements (Contracts)"]
+    subgraph App_Modules["🧩 Modular Business Layer (Django Apps)"]
+        AuthApp["🔐 apps.accounts & profiles & portfolios"]
+        MarketApp["🛒 apps.marketplace & projects & tasks"]
+        DealApp["📄 apps.proposals & negotiations & agreements"]
+        EscrowApp["🛡️ apps.escrow & wallets"]
+        CommApp["💬 apps.messaging & notifications"]
     end
 
-    subgraph Financial_Core["💰 Financial Escrow & Settlement"]
-        Escrow["🛡️ apps/escrow (Milestone Lock)"]
-        Wallets["💳 apps/wallets (Balance & Transactions)"]
+    subgraph Persistence_Cloud["☁️ Infrastructure & Database"]
+        DB[("PostgreSQL / SQLite Database")]
+        RenderHost["🚀 Render Cloud (Gunicorn + WhiteNoise)"]
+        MediaFiles["📁 Media Assets (Avatars & Deliverables)"]
     end
 
-    subgraph Communication_Alerts["💬 Collaboration & Real-Time Events"]
-        Messaging["✉️ apps/messaging (Direct Chat)"]
-        Notifications["🔔 apps/notifications (In-app Alerts)"]
-    end
+    ClientUser <--> AuthApp
+    FreelancerUser <--> AuthApp
 
-    Clients <--> Accounts
-    Freelancers <--> Accounts
+    AuthApp --> MarketApp
+    MarketApp --> DealApp
+    DealApp --> EscrowApp
+    DealApp <--> CommApp
 
-    Accounts --> Market
-    Market --> Proposals
-    Proposals --> Agreements
-    Agreements --> Escrow
-    Escrow --> Wallets
-
-    Agreements <--> Messaging
-    Escrow -.-> Notifications
+    App_Modules <--> DB
+    App_Modules <--> MediaFiles
+    App_Modules <--> RenderHost
 ```
 
 ---
 
-## 🔒 The Escrow Safeguard Workflow
+## 🔒 Financial Escrow Workflow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Client as 🏢 Client
-    participant System as ⚙️ SkillBridge Core
-    participant Escrow as 🛡️ Escrow Vault
+    actor Client as 🏢 Employer
+    participant Platform as ⚙️ SkillBridge Platform
+    participant Escrow as 🛡️ Escrow Smart Vault
     actor Freelancer as 💻 Freelancer
 
-    Client->>System: Post Project with Defined Milestones
-    Freelancer->>System: Submit Proposal & Deliverable Terms
-    Client->>System: Accept Proposal & Issue Agreement
-    Client->>Escrow: Deposit Milestone Funds into Escrow
-    Escrow-->>Freelancer: Funds Secured Confirmation (Work Begins)
-    Freelancer->>System: Submit Completed Milestone Deliverable
-    Client->>System: Review & Approve Deliverable
-    System->>Escrow: Release Milestone Funds
-    Escrow->>Freelancer: Credit Freelancer Wallet Balance
+    Client->>Platform: 1. Publish Project & Milestone Budget
+    Freelancer->>Platform: 2. Submit Bid Proposal & Timeline
+    Client->>Platform: 3. Accept Proposal & Sign Agreement
+    Client->>Escrow: 4. Deposit Milestone Funds (Locked State)
+    Escrow-->>Freelancer: 5. Notification: Funds Secured! Work Begins
+    Freelancer->>Platform: 6. Submit Milestone Work / Code Deliverable
+    Client->>Platform: 7. Review & Approve Completed Milestone
+    Platform->>Escrow: 8. Trigger Automated Fund Release
+    Escrow->>Freelancer: 9. Credit Freelancer Wallet (Instant Payout)
 ```
 
 ---
 
-## 🧩 Modular Applications Breakdown
+## ✨ Key Features
 
-| Module | Core Responsibility |
-| :--- | :--- |
-| **`accounts` / `profiles`** | Custom user types, biometric profile data, KYC verification, and user state management. |
-| **`portfolios`** | Multimedia portfolio project showcases and case studies for freelancers. |
-| **`marketplace` / `projects`** | Project listings, budget brackets, skill tag filters, and task breakdown. |
-| **`proposals` / `negotiations`** | Bid proposals, milestone timeline negotiation, and contract finalization. |
-| **`agreements`** | Legal engagement contracts binding terms, deadlines, and deliverables. |
-| **`escrow` / `wallets`** | Multi-party financial ledger, fund locking, payout verification, and refund dispute logic. |
-| **`messaging`** | Contextual project chat channels between employers and freelancers. |
-| **`notifications`** | Event-driven triggers for bids, milestones, payouts, and status updates. |
+- **🛡️ Milestone Escrow Protection**: Safeguards payments for both parties until deliverables meet acceptance criteria.
+- **💼 Dynamic Job Marketplace**: Post listings with tags, budget boundaries (fixed/hourly), and timeline expectations.
+- **🤝 Proposal & Real-Time Negotiation**: Counter-offer terms, adjust milestones, and execute binding digital agreements.
+- **💳 Multi-Party In-App Wallets**: Instant ledger accounting with credit/debit transaction histories and payout requests.
+- **💬 Direct Project Messaging**: Built-in threaded discussions between clients and freelancers for seamless coordination.
+- **⭐ Reputation & Review Engine**: Verified post-contract ratings and feedback scoring to establish user credibility.
 
 ---
 
-## 🏃 Agile Scrum Sprint Testing
+## 📂 Repository Layout
 
-The codebase has undergone iterative test-driven development:
-- **Sprint 4 Test Suite**: Validated user profiles, project postings, proposal submissions, and contract agreements.
-- **Sprint 5 Test Suite**: End-to-end verification of the escrow lifecycle, wallet balance credits, and dispute resolutions.
+```plaintext
+Skillbridge-Project/
+├── 📁 apps/                     # Modular Django applications
+│   ├── 📁 accounts/            # User authentication, registration & role control
+│   ├── 📁 profiles/            # Extended user metadata & bio profiles
+│   ├── 📁 portfolios/          # Media-rich freelancer showcase portfolios
+│   ├── 📁 marketplace/         # Searchable project marketplace & categories
+│   ├── 📁 projects/            # Project lifecycle models, statuses, deliverables
+│   ├── 📁 tasks/               # Sub-task checklists and Kanban status trackers
+│   ├── 📁 proposals/           # Freelancer bidding and application submissions
+│   ├── 📁 negotiations/        # Interactive bid counter-proposals and terms
+│   ├── 📁 agreements/          # Digital contracts binding client & freelancer
+│   ├── 📁 escrow/              # Financial lock mechanisms and release logic
+│   ├── 📁 wallets/             # In-app wallet balances, top-ups, and logs
+│   ├── 📁 messaging/           # Threaded in-app chat between counterparties
+│   ├── 📁 notifications/       # Real-time event notifications & email hooks
+│   └── 📁 core/                # Shared mixins, constants, and custom decorators
+├── 📁 config/                   # Root Django configuration & URL routing
+├── 📁 Sprint_4_Test/            # Agile Sprint 4 Selenium & unit test suites
+├── 📁 Sprint_5_Test/            # Agile Sprint 5 Escrow & settlement test suites
+├── 📄 render.yaml               # Infrastructure-as-code for Render deployment
+├── 📄 build.sh                  # Render automated build & migration script
+├── 📄 Procfile                  # Production process definition
+├── 📄 requirements.txt          # Python runtime dependencies
+└── 📄 manage.py                 # Django administrative command-line runner
+```
 
 ---
 
-## ⚡ Deployment & Local Installation
+## 🚀 Complete How-To-Run & Installation Guide
 
-### 1. Requirements
-- **Python 3.11+**
-- **Virtualenv** / Pip
+Follow these steps to run the complete SkillBridge project locally on your machine.
 
-### 2. Local Setup
+### 1. Prerequisites
+Ensure you have the following installed:
+- **Python 3.10 or 3.11+** (`python --version`)
+- **Git** (`git --version`)
+- **Pip & Virtualenv** (`pip --version`)
+
+---
+
+### 2. Step-by-Step Installation
+
+#### Step 1: Clone the Repository
 ```bash
-# Clone the repository
 git clone https://github.com/MominRifat/Skillbridge-Project.git
 cd Skillbridge-Project
+```
 
-# Create and activate virtual environment
+#### Step 2: Set Up Virtual Environment
+```bash
+# On Windows (PowerShell / Command Prompt):
 python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On Linux/macOS:
+.\venv\Scripts\activate
+
+# On macOS / Linux:
+python3 -m venv venv
 source venv/bin/activate
+```
 
-# Install dependencies
+#### Step 3: Install Required Dependencies
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
+```
 
-# Run migrations & populate initial data
+#### Step 4: Configure Environment Variables
+Copy the sample environment file to create your local `.env`:
+```bash
+# Windows:
+copy .env.example .env
+
+# macOS / Linux:
+cp .env.example .env
+```
+*(Default settings use SQLite automatically if no external PostgreSQL `DATABASE_URL` is provided.)*
+
+#### Step 5: Execute Database Migrations
+```bash
 python manage.py makemigrations
 python manage.py migrate
+```
 
-# Launch local development server
+#### Step 6: Create an Administrator Account
+```bash
+python manage.py createsuperuser
+```
+*Follow the terminal prompts to set your Admin username, email, and password.*
+
+#### Step 7: Launch the Development Server
+```bash
 python manage.py runserver
 ```
-*Visit the portal at `http://127.0.0.1:8000/`.*
 
-### 3. Cloud Deployment (Render / Heroku)
-The repository includes native deployment artifacts:
-- **`render.yaml`**: Infrastructure-as-code configuration for Render web service & PostgreSQL.
-- **`build.sh`**: Automatic static compilation (`collectstatic`) and migration runner.
-- **`Procfile`**: Production WSGI/Gunicorn entry point (`web: gunicorn config.wsgi:application`).
+Now open your web browser and navigate to:  
+👉 **`http://127.0.0.1:8000/`**  
+*(Admin Panel is accessible at `http://127.0.0.1:8000/admin/`)*
 
 ---
 
-## 👨‍💻 Contributors & Authors
+### 3. Running Automated Tests
 
-- **Momin Rifat** ([@MominRifat](https://github.com/MominRifat))
-- Original Project: [Siam-2004/SkillBridge](https://github.com/Siam-2004/SkillBridge)
+SkillBridge includes comprehensive test suites covering user journeys, escrow security, and Selenium browser automation:
+
+```bash
+# Run all unit tests
+python manage.py test
+
+# Run tests for specific modules (e.g. Accounts & Escrow)
+python manage.py test apps.accounts
+python manage.py test apps.escrow
+
+# Run Sprint verification tests
+python manage.py test Sprint_4_Test
+python manage.py test Sprint_5_Test
+```
+
+---
+
+## 🌐 Live Cloud Deployment
+
+SkillBridge is deployed live on Render:  
+🔗 **[https://skillbridge-1-7gc1.onrender.com/](https://skillbridge-1-7gc1.onrender.com/)**
+
+To deploy your own fork on Render:
+1. Connect your GitHub repository to [Render.com](https://render.com/).
+2. Select **Web Service** and choose **Python** runtime.
+3. Set **Build Command**: `./build.sh`
+4. Set **Start Command**: `gunicorn config.wsgi:application`
+5. Add a managed PostgreSQL database and link `DATABASE_URL`.
+
+---
+
+## 👨‍💻 Authors & Academic Contributors
+
+- **Momin Rifat** ([@MominRifat](https://github.com/MominRifat)) — University of Asia Pacific (UAP)
+- Upstream Base: [Siam-2004/SkillBridge](https://github.com/Siam-2004/SkillBridge)
